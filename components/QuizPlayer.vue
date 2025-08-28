@@ -1,13 +1,12 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 
-const ws_url = 'wss://slidev-quiz-server.onrender.com'
-
 const props = defineProps({
   quiz: { type: Object, required: true },     // { id, question, options[], ... }
   room: { type: String, required: true },
-  wsUrl: { type: String, default: ws_url },  // 'ws://localhost:8080' },
 })
+
+const WS_URL = props.wsUrl || import.meta.env.VITE_WS_URL || 'ws://localhost:8080'
 
 const status = ref('connecting…')
 let ws
@@ -19,16 +18,14 @@ function answer(choice) {
 }
 
 onMounted(() => {
-  ws = new WebSocket(props.wsUrl)
+  ws = new WebSocket(WS_URL)
   ws.onopen = () => {
     console.log('WebSocket connected')
     console.log('Joining room:', props.room)
     console.log('Quiz:', props.quiz)
     status.value = 'connected'
-    send({ type:'player-join', room: props.room })
     // push (upsert) quiz definition from slide, then activate it
     send({ type:'quiz-upsert', room: props.room, quiz: props.quiz })
-    send({ type:'quiz-activate', room: props.room, id: props.quiz.id })
   }
   ws.onclose = () => status.value = 'disconnected'
   ws.onerror = () => status.value = 'error'

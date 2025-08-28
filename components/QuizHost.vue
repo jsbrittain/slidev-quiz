@@ -3,13 +3,12 @@ import { ref, onMounted, onBeforeUnmount } from 'vue'
 import * as PIXI from 'pixi.js'
 import { createBarsChart } from './libs/pixiBars.js'
 
-const ws_url = 'wss://slidev-quiz-server.onrender.com'
-
 const props = defineProps({
   quiz: { type: Object, required: true },
-  room:   { type: String, required: true },
-  wsUrl:  { type: String, default: ws_url },
+  room: { type: String, required: true },
 })
+
+const WS_URL = props.wsUrl || import.meta.env.VITE_WS_URL || 'ws://localhost:8080'
 
 const hostEl = ref(null)
 const status = ref('connecting…')
@@ -30,17 +29,10 @@ onMounted(async () => {
   chart.setCounts(Object.fromEntries(props.quiz.options.map(k => [k, 0])))
   window.addEventListener('resize', () => chart?.resize())
 
-  ws = new WebSocket(props.wsUrl)
-
-  /*ws.addEventListener('open', () => {
-    ws.send(JSON.stringify({ type:'host-create', room: props.room }))
-    ws.send(JSON.stringify({ type:'counts-request', room: props.room, quizId: props.quizId }))
-  })*/
-  
+  ws = new WebSocket(WS_URL)
 
   let wsonopen = () => {
     status.value = 'connected'
-    send({ type:'host-create', room: props.room })
     // once connected, ask for the current counts for this quiz
     requestCounts()
   }
@@ -54,9 +46,7 @@ onMounted(async () => {
 
   let wsonmessage = (e) => {
     const m = JSON.parse(e.data)
-    console.log('m', m)
-    console.log('quiz', props.quiz)
-    console.log('room', props.room)
+    console.log('m', m, 'props', props)
     if (m.type === 'quiz-active' && m.quiz?.id === props.quiz.id) {
       chart?.setCounts(m.counts || {})
     }
@@ -73,7 +63,6 @@ onBeforeUnmount(() => {
   ws?.removeEventListener('close', wsonclose)
   ws?.removeEventListener('error', wsonerror)
   ws?.removeEventListener('message', wsonmessage)
-  console.log('UNMOUNTED')
   ws?.close()
   chart?.destroy()
   app?.destroy(true)
