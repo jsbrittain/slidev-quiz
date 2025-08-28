@@ -2,4 +2,4 @@
 
 [Slides](https://jsbrittain.github.io/slidev-quiz/)
 
-Experimental quiz application built with [Slidev](https://sli.dev). Requires a WebSocket server ([slidev-quiz-server](https://github.com/jsbrittain/slidev-quiz-server)) - navigate to that page for deployment status. If deploying elsewhere or locally, modify the url in `components/QuizPlayer.vue` and `components/QuizHost.vue`. Uses `pixi.js` for rendering.
+Experimental quiz application built with [Slidev](https://sli.dev), `pixi.js` and WebSockets. Requires a WebSocket server specified by the (build-time) environment variable `VITE_WS_URL` (localhost:8080 by default). The WebSocket server is available at [slidev-quiz-server](https://github.com/jsbrittain/slidev-quiz-server) - navigate to that page for deployment information.
